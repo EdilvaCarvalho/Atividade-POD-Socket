@@ -5,7 +5,16 @@ import (
 	"net"
 	"bufio"
 	"os"
+	"encoding/json"
+	
 )
+
+type Pessoa struct {
+	Nome string
+	Curso string
+	Cidade string
+}
+
 
 func main() {
 
@@ -17,11 +26,29 @@ func main() {
 	
 	for {
 
+		pessoa := Pessoa{}
+
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("> ")
-		text, _ := reader.ReadString('\n')
+
+		fmt.Print("Nome: ")
+		pessoa.Nome, _ = reader.ReadString('\n')
+		fmt.Print("Curso: ")
+		pessoa.Curso, _ = reader.ReadString('\n')
+		fmt.Print("Cidade: ")
+		pessoa.Cidade, _ = reader.ReadString('\n')
 		
-		conn.Write([]byte(text))
+		j, _ := json.Marshal(pessoa)
+		
+		conn.Write([]byte(j))
+
+		// ouvindo a resposta do servidor (eco)
+		mensagem, err2 := bufio.NewReader(conn).ReadString('\n')
+		if err2 != nil {
+			fmt.Println(err2)
+			os.Exit(3)
+		}
+		// escrevendo a resposta do servidor no terminal
+		fmt.Print("Resposta do servidor: " + mensagem)
 		
 	}
 		

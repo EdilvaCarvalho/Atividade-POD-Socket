@@ -3,27 +3,39 @@ package main
 import (
     "database/sql"
     "fmt"
-    //"postgresql/pq"
-    //"mysql/mysql"
+    _ "postgresql/pq"
+    _ "mysql/mysql"
     //"time"
-    _ "github.com/lib/pq"
+    //_ "github.com/lib/pq"
     "bufio"
     "net"
     "log"
+    "encoding/json"
 )
 
 const (
     DB_USER     = "postgres"
     DB_PASSWORD = "postgres"
-    DB_NAME     = "test"
+    DB_NAME     = "pod"
 )
+
+type Pessoa struct {
+	Nome string
+	Curso string
+	Cidade string
+}
 
 func handle(conn net.Conn) {
 	defer conn.Close()
 
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
-		ln := scanner.Text()
+        ln := scanner.Text()
+
+        fmt.Println(ln)
+
+        var p Pessoa
+		json.Unmarshal([]byte(ln), &p)
 
 		//pq
         dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
@@ -32,30 +44,33 @@ func handle(conn net.Conn) {
         checkErr(err)
         defer db.Close()
 
-        fmt.Println("# Inserting values")
+        fmt.Println("# Inserindo valores")
 
         var lastInsertId int
-        err = db.QueryRow("INSERT INTO message(mensagem) VALUES($1) returning uid;", ln).Scan(&lastInsertId)
+        err = db.QueryRow("INSERT INTO pessoa(nome, curso, cidade) VALUES($1, $2, $3) returning uid;", p.Nome, p.Curso, p.Cidade).Scan(&lastInsertId)
         checkErr(err)
-        fmt.Println("Postgres: last inserted id =", lastInsertId)
+        fmt.Println("Postgres: Último id inserido =", lastInsertId)
 
 
         //mysql
 
-        db2, err := sql.Open("mysql", "astaxie:astaxie@/test?charset=utf8")
+        db2, err := sql.Open("mysql", "root:@/pod?charset=utf8")
         checkErr(err)
 
         // insert
-        stmt, err := db2.Prepare("INSERT message SET mensagem=?")
+        stmt, err := db2.Prepare("INSERT pessoa SET nome=?, curso=?, cidade=?")
         checkErr(err)
 
-        res, err := stmt.Exec(ln)
+        res, err := stmt.Exec(p.Nome, p.Curso, p.Cidade)
         checkErr(err)
 
         id, err := res.LastInsertId()
         checkErr(err)
 
-        fmt.Println("Mysql: last inserted id =", id)
+        fmt.Println("Mysql: Último id inserido =", id)
+
+        // envia a resposta para o cliente
+		conn.Write([]byte("Pessoa armazenada com sucesso!" + "\n"))
 	}
 }
 
