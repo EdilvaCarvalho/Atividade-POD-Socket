@@ -39,7 +39,8 @@ func main() {
 		
 		j, _ := json.Marshal(pessoa)
 		
-		conn.Write([]byte(j))
+		s := string(j)
+		conn.Write([]byte(s + "\n"))
 
 		// ouvindo a resposta do servidor (eco)
 		mensagem, err2 := bufio.NewReader(conn).ReadString('\n')
