@@ -14,8 +14,6 @@ func main() {
 		panic(err1)
 	}
 	defer conn.Close()
-
-	go readConnection(conn)
 	
 	for {
 
@@ -29,6 +27,7 @@ func main() {
 			fmt.Println("A mensagem deve conter no mínimo 10 e no máximo 100 caracteres.")
 		}
 		
+		go readConnection(conn)
 	}
 		
 }
