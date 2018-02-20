@@ -5,8 +5,6 @@ import (
     "fmt"
     _ "postgresql/pq"
     _ "mysql/mysql"
-    //"time"
-    //_ "github.com/lib/pq"
     "bufio"
     "net"
     "log"
@@ -79,7 +77,6 @@ func checkErr(err error) {
         panic(err)
     }
 }
-
 
 func main() {
 	li, err := net.Listen("tcp", ":9000")
